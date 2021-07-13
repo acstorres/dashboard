@@ -9,8 +9,8 @@
 <script>
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import CustomHeader from './CustomHeader.vue'
-import Contact from './Contact.vue'
+import CustomHeader from './CustomHeader'
+import Contact from './Contact'
 
 export default {
   components: {
