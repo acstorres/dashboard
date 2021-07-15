@@ -82,7 +82,8 @@
           duration-150
         "
       >
-        Entrar
+        <icon v-if="state.isLoading" name="loading" class="animate-spin" />
+        <span v-else>Entrar</span>
       </button>
     </form>
   </div>
@@ -91,14 +92,23 @@
 <script>
 import { reactive } from "@vue/reactivity";
 import { useField } from "vee-validate";
+import { useToast } from "vue-toastification";
 import useModal from "../../hooks/useModal";
+import services from "../../services";
+import Icon from "../Icon";
 import {
   validateEmptyAndLength3,
   validateEmptyAndEmail,
 } from "../../utils/validators";
+import { useRouter } from "vue-router";
 
 export default {
+  components: {
+    Icon,
+  },
   setup() {
+    const toast = useToast();
+    const router = useRouter();
     const modal = useModal();
     const { value: emailValue, errorMessage: emailErrorMessage } = useField(
       "email",
@@ -121,7 +131,40 @@ export default {
       },
     });
 
-    function handleSubmit() {}
+    async function handleSubmit() {
+      try {
+        toast.clear();
+        state.isLoading = true;
+        const { data, errors } = await services.auth.login({
+          email: state.email.value,
+          password: state.password.value,
+        });
+
+        if (!errors) {
+          window.localStorage.setItem("token", data.token);
+          router.push({ name: "Feedbacks" });
+          modal.close();
+          state.isLoading = false;
+          return;
+        }
+        if (errors.status === 404) {
+          toast.error("E-mail não encontrado");
+        }
+        if (errors.status === 401) {
+          toast.error("E-mail/senha inválidos");
+        }
+        if (errors.status === 400) {
+          toast.error("Ocorreu um erro ao fazer o login");
+        }
+
+        state.isLoading = false;
+      } catch (error) {
+        console.log(error);
+        state.isLoading = false;
+        state.hasErrors = !!error;
+        toast.error("Ocorreu um erro ao fazer o login");
+      }
+    }
 
     return {
       state,
