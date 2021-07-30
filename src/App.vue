@@ -3,10 +3,13 @@
   <router-view />
 </template>
 <script>
+import services from "./services";
 import { watch } from "@vue/runtime-core";
 import { useRoute, useRouter } from "vue-router";
+import { setCurrentUser } from "./store/user"
+
 import ModalFactory from "./components/ModalFactory";
-import services from "./services";
+
 
 export default {
   components: {
@@ -27,6 +30,7 @@ export default {
             return;
           }
           const { data } = await services.users.getMe()
+          setCurrentUser(data)
         }
       }
     );
